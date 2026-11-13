@@ -1,0 +1,44 @@
+# Shared dependencies for all four NLP labs.
+# Install with: .venv\Scripts\python.exe -m pip install -r requirements.txt
+# Versions are not locked; this is not an exact historical notebook environment.
+
+# Notebook environment
+jupyterlab
+ipykernel
+
+# Data processing and visualization
+numpy
+pandas
+scikit-learn
+matplotlib
+seaborn
+joblib
+
+# Web scraping and storage
+requests
+beautifulsoup4
+selenium
+pymongo
+
+# NLP and Arabic text processing
+nltk
+spacy
+gensim
+PyArabic
+Tashaphyne
+qalsadi
+word2number
+tabulate
+
+# Deep learning and distributed processing
+tensorflow
+torch
+transformers
+pyspark
+
+# Additional setup outside pip:
+# - Download spaCy models: en_core_web_sm and xx_ent_wiki_sm.
+# - Download the NLTK resources requested by each notebook.
+# - MongoDB, Java (for Spark), and Chrome (for Selenium) are external services/tools.
+# - Lab 2 also references an external GloVe vector file and MongoDB corpus.
+# - Older notebook APIs may need changes for current library versions.

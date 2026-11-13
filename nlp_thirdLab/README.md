@@ -1,129 +1,72 @@
-# Language-Modeling
+# Lab 3 - Short-Answer Grading and Sentiment Classification
 
-## Overview
-This project focuses on utilizing Natural Language Processing (NLP) techniques and models provided by the Sklearn library. The objective is to gain familiarity with language models for regression and classification tasks.
+[Back to all labs](../README.md)
 
-## Part 1: Language Modeling / Regression
+## Abstract
 
-### Dataset
-The dataset used for this part can be found here: [answers.csv](https://github.com/dbbrandt/short_answer_granding_capstone_project/blob/master/data/sag/answers.csv).
+This lab studies supervised learning from text through two tasks: predicting numerical short-answer scores and classifying tweet sentiment. It compares sparse lexical features with averaged Word2Vec embeddings. The regression notebook contains saved evaluation results; the classification notebook defines experiments but does not contain completed metric outputs.
 
-### Preprocessing
-- Tokenization, stemming, lemmatization, and removal of stop words are performed to preprocess the collected dataset.
-- Discretization is applied to transform continuous data into categorical data.
+## Objectives and data
 
-### Encoding
-Word2Vec (CBOW, Skip Gram), Bag of Words, and TF-IDF are used to encode the data vectors.
+| File | Role |
+| --- | --- |
+| [ex1.ipynb](ex1.ipynb) | Short-answer preprocessing, regression, evaluation, and plots |
+| [answers.csv](answers.csv) | 2,442 records with `id`, `answer`, `score`, and `correct` fields |
+| [ex2.ipynb](ex2.ipynb) | Tweet preprocessing, representation learning, and classification code |
+| [twitter_training.csv](twitter_training.csv) | Training tweets with ID, entity/topic, sentiment, and text fields |
+| [twitter_validation.csv](twitter_validation.csv) | Separate supplied validation tweets |
 
-### Models
-The following models are trained using the Word2Vec embeddings:
-- Support Vector Regression (SVR)
-- Linear Regression
-- Decision Tree
+The grading experiment predicts `score` from `answer`; it does not incorporate the `correct` field as an answer-reference feature. Both tasks are supervised prediction experiments rather than next-token language modeling.
 
-### Evaluation
-The models are evaluated using standard metrics such as Mean Squared Error (MSE) and Root Mean Squared Error (RMSE). The best model is selected based on these metrics, and the choice is justified.
+## Methodology
 
-### Results Interpretation
-The results from the evaluation of different models and vectorization techniques are as follows:
+### Short-answer score regression
 
-1. **SVR with TF-IDF**
-   - **MSE:** 0.9578
-   - **RMSE:** 0.9787
+Answers are lowercased and tokenized, punctuation and English stop words are removed, and Porter stemming is followed by WordNet lemmatization. The notebook builds four feature representations: bag-of-words, TF-IDF, and mean word vectors from 100-dimensional Word2Vec CBOW and Skip-gram models. The Word2Vec configurations use a context window of five and `min_count=1`.
 
-2. **Linear Regression with TF-IDF**
-   - **MSE:** 2.6744
-   - **RMSE:** 1.6354
+Each representation is split into 80% training and 20% testing with `random_state=42`. Support vector regression, linear regression, and decision-tree regression are evaluated with MSE and RMSE. Later cells also compute MAE, R^2, and MAPE and plot the comparisons.
 
-3. **Decision Tree with TF-IDF**
-   - **MSE:** 1.6899
-   - **RMSE:** 1.3000
+### Tweet sentiment classification
 
-4. **SVR with CBOW**
-   - **MSE:** 1.7285
-   - **RMSE:** 1.3147
+Tweets are cleaned by removing URLs, mentions, hashtags, and punctuation, followed by English stop-word removal, lemmatization, and stemming. The training data is split 80/20 with seed 42. Word2Vec is learned on the training split; bag-of-words and TF-IDF are likewise fitted on training text.
 
-5. **Linear Regression with CBOW**
-   - **MSE:** 1.2975
-   - **RMSE:** 1.1391
+The code defines SVM, multinomial Naive Bayes, logistic regression, and AdaBoost classifiers. Evaluation functions return accuracy, weighted F1, and a classification report. The final results dictionary includes logistic-regression and AdaBoost combinations; SVM entries are commented out. The supplied validation CSV is loaded but is not used for the final evaluation in the current code.
 
-6. **Decision Tree with CBOW**
-   - **MSE:** 1.8476
-   - **RMSE:** 1.3593
+## Recorded regression results
 
-7. **SVR with Skip Gram**
-   - **MSE:** 1.4878
-   - **RMSE:** 1.2198
+The table below reproduces the first MSE/RMSE comparison cell, rounded to four decimals. Lower values indicate smaller prediction errors.
 
-8. **Linear Regression with Skip Gram**
-   - **MSE:** 1.2330
-   - **RMSE:** 1.1104
+| Representation | Regressor | MSE | RMSE |
+| --- | --- | ---: | ---: |
+| TF-IDF | SVR | **0.9578** | **0.9787** |
+| TF-IDF | Linear regression | 2.6744 | 1.6354 |
+| TF-IDF | Decision tree | 1.6899 | 1.3000 |
+| CBOW | SVR | 1.7285 | 1.3147 |
+| CBOW | Linear regression | 1.2975 | 1.1391 |
+| CBOW | Decision tree | 1.8476 | 1.3593 |
+| Skip-gram | SVR | 1.4878 | 1.2198 |
+| Skip-gram | Linear regression | 1.2330 | 1.1104 |
+| Skip-gram | Decision tree | 1.7355 | 1.3174 |
+| Bag-of-words | SVR | 1.1196 | 1.0581 |
+| Bag-of-words | Linear regression | 5.1984 | 2.2800 |
+| Bag-of-words | Decision tree | 1.6574 | 1.2874 |
 
-9. **Decision Tree with Skip Gram**
-   - **MSE:** 1.7355
-   - **RMSE:** 1.3174
+**SVR with TF-IDF is the strongest combination in this saved comparison.** Its additional outputs show MAE **0.6883** and R^2 **0.2511**. The positive but modest R^2 suggests substantial room for improvement. Later evaluation cells refit the unseeded decision trees and produce somewhat different scores.
 
-10. **SVR with Bag of Words**
-    - **MSE:** 1.1196
-    - **RMSE:** 1.0581
+The classification notebook contains a saved `KeyboardInterrupt` in its initial imports and no completed accuracy/F1 outputs. A best sentiment classifier cannot be selected from the committed evidence.
 
-11. **Linear Regression with Bag of Words**
-    - **MSE:** 5.1984
-    - **RMSE:** 2.2800
+## Limitations and improvements
 
-12. **Decision Tree with Bag of Words**
-    - **MSE:** 1.6574
-    - **RMSE:** 1.2874
+- In the regression notebook, vectorizers and Word2Vec are fitted before the split. This exposes feature learning to test text and limits the strength of the reported comparison. Split raw text first and fit feature extraction only on training data.
+- MAPE is extremely large in the saved output and is unsuitable for interpreting errors when target scores include zero or values near zero. Prefer MAE, RMSE, and R^2 here.
+- Word2Vec training and decision trees are not fully seeded; a single random split does not quantify result variability.
+- Tweet CSVs have no header, but the pandas reads use default header inference. A reproduction should use `header=None` with explicit column names to retain the first record.
+- Multinomial Naive Bayes requires nonnegative inputs, while Word2Vec vectors may contain negative values. The embedding-based Naive Bayes calls need revision or exclusion before a complete classification run.
 
-### Analysis and Conclusion
-1. **Best Performing Model and Vectorization Method:**
-   - **SVR with TF-IDF** has the lowest MSE (0.9578) and RMSE (0.9787). This indicates that this combination has the best performance in terms of minimizing the error in the predictions.
-   - **SVR with Bag of Words** also performs well with an MSE of 1.1196 and an RMSE of 1.0581, showing it’s a strong alternative.
+## Reproduction notes
 
-2. **Linear Regression Performance:**
-   - Linear Regression with TF-IDF, CBOW, and Skip Gram show moderate performance, but performs poorly with Bag of Words.
-   - The highest MSE and RMSE were observed with Linear Regression using Bag of Words, making it the least effective model and vectorization combination.
+Open Jupyter from this folder. Imports include `pandas`, `numpy`, `nltk`, `spacy`, `gensim`, `scikit-learn`, `matplotlib`, `seaborn`, and `joblib`. The regression notebook loads `en_core_web_sm`, and the notebooks download NLTK tokenizer, stop-word, and WordNet resources. No pinned environment is supplied; library versions can affect compatibility and results. Metrics above are historical saved outputs, not a fresh execution.
 
-3. **Decision Tree Performance:**
-   - Decision Tree with TF-IDF has a reasonably low MSE and RMSE, making it a decent choice.
-   - However, Decision Tree generally does not outperform SVR models.
+## Conclusion
 
-4. **Effectiveness of Vectorization Techniques:**
-   - **TF-IDF** consistently showed strong performance, especially when combined with SVR, highlighting its effectiveness in capturing the importance of words in the documents.
-   - **Bag of Words** also showed strong performance with SVR but was less effective with Linear Regression.
-   - **CBOW and Skip Gram** produced moderately effective results, indicating that while they capture semantic meanings of words, they might not be as effective for this particular regression task as TF-IDF.
-
-Based on the evaluation metrics, **SVR with TF-IDF** is the best performing model and vectorization method for this dataset. It has the lowest Mean Squared Error (MSE) and Root Mean Squared Error (RMSE), indicating its superior ability to predict the scores accurately. This choice is supported by its robust performance metrics, making it the preferred model for this short answer grading task.
-
-![téléchargement (1)](https://github.com/mohammed-stalin/nlp_thirdLab/assets/116387474/414db219-4277-408f-9149-0e3ffc2f00e7)
-![téléchargement](https://github.com/mohammed-stalin/nlp_thirdLab/assets/116387474/e543ebad-369a-43c3-a9de-2111a7d4c11e)
-![téléchargement (2)](https://github.com/mohammed-stalin/nlp_thirdLab/assets/116387474/988c70fa-667b-42e9-bbe4-6ee2f3f770df)
-
-
-# Part 2: Language Modeling / Classification
-
-## Dataset
-The dataset used for this part can be found here: [Twitter Entity Sentiment Analysis](https://www.kaggle.com/datasets/jp797498e/twitter-entity-sentiment-analysis).
-
-## Preprocessing
-Similar to Part 1, an NLP preprocessing pipeline is established for tokenization, stemming, lemmatization, stop words removal, and discretization.
-
-## Encoding
-Data vectors are encoded using Word2Vec (CBOW, Skip Gram), Bag of Words, and TF-IDF.
-
-## Models
-The following models are trained using the Word2Vec embeddings:
-
-- Support Vector Machine (SVM)
-- Naive Bayes
-- Logistic Regression
-- AdaBoost
-
-## Evaluation
-Models are evaluated using standard metrics such as Accuracy, Loss, and F1 Score, along with other metrics like BLEU Score. The best model is selected based on these metrics, and the choice is justified.
-
-## Results Interpretation
-The obtained results are interpreted to understand the effectiveness of the selected model and the overall performance of the language models for classification.
-
-# Conclusion
-In this project, we explored NLP techniques and models for language modeling using Sklearn. We performed preprocessing, encoding, training, and evaluation for both regression and classification tasks. Through this work, we gained valuable insights into the effectiveness of different models and techniques in NLP applications.
+The recorded regression experiment favors TF-IDF with SVR over the tested alternatives. A stronger conclusion requires leakage-free feature fitting and repeated evaluation. The sentiment experiment provides a useful starting pipeline, with execution and model-input issues still to resolve before reporting results.
